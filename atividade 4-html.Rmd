@@ -1,0 +1,88 @@
+---
+title: "Atividade Econometria - Experimento na Agroindústria"
+author: "Clevia Bento de Oliveira"
+date: "16/12/2021"
+output:
+   rmdformats::readthedown
+
+---
+
+# Introdução 
+
+Um engenheiro está interessado em investigar a resistência de uma nova fibra sintética usada na produção de camisas. 
+Sabendo que a resistência é afetada pela quantidade de algodão usada na fibra, e que a quantidade  desejada de algodão no produto final deve estar no intervalo de 10 a 40%,o engenheiro planeja um experimento com as seguintes quantidades de algodão: 15, 20, 25, 30 e 35%, e cinco repetições.
+
+```{r,message=FALSE,warning=FALSE}
+rm(list=ls(all=TRUE))
+require(lattice)
+require(dae)
+require(ExpDes.pt)
+library(rmarkdown)
+
+y<- c(7,  7,  15, 11, 9,
+      12, 17, 12, 18, 18,
+      14, 18, 18, 19, 19,
+      19, 25, 22, 19, 23,
+      7,  10, 11, 15, 11);
+
+n<- length(y);
+i<- 5 # numero de níveis do fator
+r<- 5 # numero de repetições
+
+algodao <- factor(rep(c(1:i), each=r), labels=c("15","20","25","30","35")); 
+repeticoes<- factor(rep(c("1","2","3","4","5"),each=1));
+
+DIC<- data.frame(algodao,repeticoes,y)
+attach(DIC)
+paged_table(DIC)
+```
+
+## Objetivos 
+- Avaliar o efeito da porcentagem de algodão na resistência da fibra sintética;
+- Identificar a porcentagem ideal de algodão de forma a se obter máxima resistência com menor custo do produto final.
+
+# Metodologia 
+Para a análise dos dados será utilizado um Delineamento Inteiramente Casualizado (DIC),com auxílio do pacote `ExpDes.pt`para obtensão dos resultados e o pacote `lattice`para a visualização do dados. 
+
+# Visualização do experimento 
+```{r}
+
+xyplot(y ~ reorder(algodao, y),
+       data = DIC,
+       type = c("p","g", "a"),
+       ylab = expression("Resistencia da fibra sintética"),
+       xlab = expression("Percentual de Algodão"),col= 2)
+```
+
+## Definindo o modelo de regressão 
+
+```{r}
+modelo <- lm(y ~ algodao, DIC)
+```
+
+# Análise gráfica do modelo 
+
+```{r, warning=FALSE, message=FALSE}
+par(mfrow=c(2,2))
+
+plot(modelo)
+
+par(mfrow=c(1,1))
+```
+O primeiro gráfico (superior a esquerda), indica se os resíduos seguem linearidade. Podemos observar que a linha vermelha está bem próxima à linha pontilhada indicando que os resíduos têm linearidade. 
+No segundo gráfico verificamos se os resíduos possuem distribuição normal,neste caso vemos que os resíduos estão bem próximos à linha indicando que há indícios de uma distribuição normal.
+
+# Execussão dos testes
+
+## Hipóteses que iremos testar: 
+- H0: os níveis de porcentagem de algodão possuem efeitos semelhantes na resistência da fibra sintética. 
+- H1: os níveis de porcentagem de algodão possuem efeitos diferentes na resistência da fibra sintética. 
+
+## Análise de variância e teste Tukey
+
+```{r}
+dic(algodao, y)
+```
+Vemos que pela análise de variância o p-valor foi menor que 0,05 então rejeitamos H0, assim podemos concluir que pelo menos um dos níveis de porcentagem de algodão possui efeito na resistência da fibra sintética. 
+Verificamos que os resíduos seguem uma distribuição normal pelo teste de Shapiro-Wilk e as variâncias possuem homogeneidade pelo teste de bartlett. 
+Pelo teste Tukey a porcentagem de algodão com melhor desempenho é de 30%, seguida de 25%. Podemos concluir que acordo com o custo do algodão a porcentagem ideal de forma a se obtenha máxima resistência com menor custo do produto final é de 25%. 

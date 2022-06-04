@@ -1,0 +1,236 @@
+---
+title: "Atividades de Econometria"
+author: "Clevia Bento de Oliveira"
+date: "13/12/2021"
+output: html_document
+---
+# Atividade 1 
+Análise de regressão linear simples com o banco de dados fornecido na aula 1.
+
+### Objetivo: avaliar se o consumo aumenta a medida em que a renda cresce.
+Y= consumo (Variável dependente)  
+X= renda (Variável independente) 
+
+#### Carregamento do banco de dados  
+
+```{r, warning=FALSE, message=FALSE}
+require(pacman)
+pacman::p_load(dplyr, ggplot2, car, rstatix, lmtest, ggpubr)
+library(readxl)
+
+dados <- read_excel("C:/Users/Clevia/Documents/Econometria/econometria-dados.xlsx")
+glimpse(dados)
+dados$y <- as.numeric(dados$y)
+dados$x <- as.numeric(dados$x)
+
+```
+
+### Verificação dos pressupostos para a regressão linear
+
+Relação linear entre a variável dependente (y), e independente (x). 
+
+```{r}
+plot(dados$x, dados$y)
+```
+  
+Analisando o gráfico, podemos ver que os dados possuem uma relação linear 
+
+### Construção do modelo 
+
+```{r}
+mod <- lm(y ~ x, dados)
+```
+
+### Análise gráfica 
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(mod)
+
+par(mfrow=c(1,1))
+```
+
+O primeiro gráfico é o gráfico de resíduos pelos valores previstos,vemos que a linha vermelha está próxima à linha pontilhada então podemos concluir que de fato dos dados possuem linearidade.  
+Também é possível ver a presença de homocedasticidade.  
+No segundo gráfico verificamos se os resíduos possuem distribuição normal,neste caso vemos que os resíduos estão bem próximos à linha indicando que há indícios de uma distribuição normal.  
+No ultimo gráfico verificamos se há outliers e se eles são pontos influentes.  
+
+## Aplicação dos testes 
+
+## Normalidade dos resíduos:
+Para o teste de shapiro temos:  
+H0: os dados possuem distribuição normal  
+H1: os dados não possuem distribuição normal  
+
+```{r}
+shapiro.test(mod$residuals)
+```
+
+Vemos que o p-valor foi maior que 0,05 então concluímos que os resíduos possuem distribuição normal
+
+## Outliers nos resíduos:
+Verificando o resumo dos resíduos padronizados vemos que os dados estão dentro do intervalo [-3,3] e a mediana próxima de zero então concluímos que não há outliers
+
+```{r}
+summary(rstandard(mod))
+```
+
+## Independência dos resíduos (Durbin-Watson): 
+
+Vemos que a estatística de Durbin-Watson está próxima de 2 então podemos concluir que os dados possuem independencia
+
+```{r}
+durbinWatsonTest(mod)
+```
+
+
+## Homocedasticidade (Breusch-Pagan):
+H0: há homocedasticidade  
+H1: não há homocedasticidade  
+```{r}
+bptest(mod)
+```
+podemos ver que não há homocedasticidade nos dados
+
+## Análise do modelo 
+```{r}
+summary(mod)
+ggplot(data = dados, mapping = aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "red") +
+  stat_regline_equation(aes(label = paste(..eq.label.., ..adj.rr.label..,
+                                          sep = "*plain(\",\")~~")),
+                        label.x = 4500, label.y = 2800) +
+  theme_classic()
+
+```
+
+# Atividade 2 
+
+## carregamento do banco de dados 
+```{r}
+dados2 <- read_excel("C:/Users/Clevia/Documents/Econometria/econometria-dadosatv2.xlsx")
+glimpse(dados2)
+```
+
+#Verificação dos presupostos
+
+Relação linear entre a Variável dependente (y) e a independente (x):
+
+```{r}
+plot(dados2$x, dados2$y)
+```
+
+## Construção do modelo:
+
+```{r}
+mod1 <- lm(y ~ x, dados2)
+```
+
+## Análise gráfica:
+
+```{r}
+par(mfrow=c(2,2))
+
+plot(mod1)
+
+par(mfrow=c(1,1))
+```
+## Normalidade dos resíduos:
+
+```{r}
+shapiro.test(mod1$residuals)
+```
+os resíduos seguem distribuição normal 
+
+
+## Outliers nos resíduos:
+```{r}
+summary(rstandard(mod1))
+```
+
+não há presença de outliers
+
+## Independência dos resíduos (Durbin-Watson):
+```{r}
+durbinWatsonTest(mod1)
+```
+há independêndia nos resíduos
+
+## Homocedasticidade (Breusch-Pagan):
+```{r}
+bptest(mod1)
+```
+não há homocedasticidade 
+
+#Análise do modelo
+```{r}
+summary(mod1)
+
+
+
+
+
+ggplot(data = dados2, mapping = aes(x = x, y = y)) +
+  geom_point() +
+  geom_smooth(method = "lm", col = "red") +
+  stat_regline_equation(aes(label = paste(..eq.label.., ..adj.rr.label..,
+                                          sep = "*plain(\",\")~~")),
+                        label.x = 200, label.y = 50) +
+  theme_get()
+
+```
+
+# Atividade 3: Multicolinearidade 
+
+## Carregando os dados 
+
+```{r}
+dados3 <- read_excel("C:/Users/Clevia/Documents/Econometria/atv 3 econometria.xlsx")
+attach(dados3)
+```
+
+## Construção do modelo 
+```{r}
+ajuste<- lm(CO2 ~ PIB + Pop, dados3)
+ajuste
+```
+
+## Anova 
+```{r}
+anova(ajuste)
+```
+
+## Analise gráfica 
+```{r}
+par(mfrow=c(2,2))
+
+plot(ajuste)
+
+par(mfrow=c(1,1))
+```
+
+## Correlação 
+```{r}
+dados3_2<- dados3[,2:3]
+cor(dados3_2)
+```
+
+vemos que as variavéis são altamente correlacionadas
+
+```{r}
+pairs(dados3_2)
+
+```
+  
+As variáveis possuem um relacionamento linear forte e positivo entre si
+
+```{r}
+summary(ajuste)
+vif(ajuste)
+```
+
+## Conclusão 
+
+na anova a interação é significativa porém ao realizar os testes t as variáveis individualmente não são significativas, além disso as variáveis possuem uma forte correlação e o valor de VIF apesar de não ser maior que 10, está bastante próximo desse valor. Então concluímos que há multicolinearidade.
